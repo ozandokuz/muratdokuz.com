@@ -1,6 +1,33 @@
+"use client";
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 
 export default function Home() {
+  const [duyurular, setDuyurular] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDuyurular = async () => {
+      try {
+        const q = query(collection(db, 'duyurular'), orderBy('date', 'desc'), limit(2));
+        const querySnapshot = await getDocs(q);
+        const fetched = [];
+        querySnapshot.forEach((doc) => {
+          fetched.push({ id: doc.id, ...doc.data() });
+        });
+        setDuyurular(fetched);
+      } catch (err) {
+        console.error("Duyurular çekilirken hata oluştu: ", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchDuyurular();
+  }, []);
+
   return (
     <>
       <main className="container">
@@ -20,49 +47,69 @@ export default function Home() {
 
         <div className="grid-2">
           <section id="duyurular">
-            <h2 className="section-title">Güncel Duyurular</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2 className="section-title" style={{ margin: 0, paddingBottom: 0 }}>Güncel Duyurular</h2>
+              <Link href="/duyurular" style={{ color: 'var(--color-primary)', fontWeight: 'bold', fontSize: '0.9rem' }}>Tümünü Gör &rarr;</Link>
+            </div>
             
-            <div className="card announcement-card">
-              <div className="date-badge">
-                <div className="date-month">Nis</div>
-                <div className="date-day">15</div>
+            {loading ? (
+              <p>Yükleniyor...</p>
+            ) : duyurular.length === 0 ? (
+              <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
+                <p style={{ color: 'var(--text-secondary)' }}>Henüz duyuru bulunmuyor.</p>
               </div>
-              <div className="announcement-content">
-                <h3>Müze Gezisi Hatırlatması</h3>
-                <p>Cuma günü gerçekleştireceğimiz Bilim Müzesi gezisi için izin belgelerini ve katılım paylarını perşembe gününe kadar teslim etmeyi unutmayalım.</p>
-              </div>
-            </div>
+            ) : (
+              duyurular.map((duyuru, index) => {
+                const isEven = index % 2 === 0;
+                const badgeStyle = isEven 
+                  ? {} 
+                  : { backgroundColor: '#ccfbf1', color: '#0f766e', borderColor: '#99f6e4' };
+                
+                let day = "-";
+                let month = "Yeni";
+                
+                if (duyuru.date?.toDate) {
+                  const dateObj = duyuru.date.toDate();
+                  day = dateObj.getDate().toString();
+                  month = dateObj.toLocaleString('tr-TR', { month: 'short' });
+                }
 
-            <div className="card announcement-card">
-              <div className="date-badge" style={{ backgroundColor: '#ccfbf1', color: '#0f766e', borderColor: '#99f6e4' }}>
-                <div className="date-month">Nis</div>
-                <div className="date-day">18</div>
-              </div>
-              <div className="announcement-content">
-                <h3>Veli Toplantısı</h3>
-                <p>Önümüzdeki hafta perşembe akşamı saat 19:00'da genel değerlendirme için çevrimiçi (Zoom üzerinden) veli toplantımız olacaktır.</p>
-              </div>
-            </div>
+                return (
+                  <div key={duyuru.id} className="card announcement-card">
+                    <div className="date-badge" style={badgeStyle}>
+                      <div className="date-month">{month}</div>
+                      <div className="date-day">{day}</div>
+                    </div>
+                    <div className="announcement-content">
+                      <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-primary)', fontSize: '1.25rem' }}>{duyuru.title}</h3>
+                      <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {duyuru.content}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })
+            )}
           </section>
 
           <section id="odevler">
             <h2 className="section-title">Haftalık Ödev Tablosu</h2>
             <div className="card" style={{ padding: '2.5rem', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-              <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.5rem' }}>11-15 Nisan Haftası</h3>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '300px' }}>Öğrencilerimiz ödevlerini her günün akşamında düzenli olarak yapmalıdır.</p>
+              <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.5rem' }}>Örnek Şablon Haftası</h3>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '300px' }}>Ödev sistemi veritabanına bağlanana kadar bu alan tasarım ön izlemesi olarak kalacaktır.</p>
               <a href="#haftalik" className="btn btn-primary">Tüm Programı Görüntüle</a>
             </div>
           </section>
         </div>
 
         <section id="haftalik" style={{ marginTop: '5rem', marginBottom: '3rem' }}>
-          <h2 className="section-title">Gün Gün Ödev Dağılımı</h2>
+          <h2 className="section-title">Gün Gün Ödev Dağılımı (Ön İzleme)</h2>
           <div className="hw-grid">
             {/* Monday */}
             <div className="hw-day">
               <div className="hw-day-header">
                 <div className="hw-day-name">Pazartesi</div>
-                <div className="hw-day-date">11 Nisan</div>
+                <div className="hw-day-date">Tasarım Şablonu</div>
               </div>
               <div className="hw-task">
                 <strong>📚 Türkçe</strong>
@@ -78,7 +125,7 @@ export default function Home() {
             <div className="hw-day">
               <div className="hw-day-header">
                 <div className="hw-day-name">Salı</div>
-                <div className="hw-day-date">12 Nisan</div>
+                <div className="hw-day-date">Tasarım Şablonu</div>
               </div>
               <div className="hw-task">
                 <strong>🧮 Matematik</strong>
@@ -94,7 +141,7 @@ export default function Home() {
             <div className="hw-day">
               <div className="hw-day-header">
                 <div className="hw-day-name">Çarşamba</div>
-                <div className="hw-day-date">13 Nisan</div>
+                <div className="hw-day-date">Tasarım Şablonu</div>
               </div>
               <div className="hw-task">
                 <strong>🧪 Fen Bilimleri</strong>
@@ -110,7 +157,7 @@ export default function Home() {
             <div className="hw-day">
               <div className="hw-day-header">
                 <div className="hw-day-name">Perşembe</div>
-                <div className="hw-day-date">14 Nisan</div>
+                <div className="hw-day-date">Tasarım Şablonu</div>
               </div>
               <div className="hw-task">
                 <strong>🎨 Görsel Sanatlar</strong>
@@ -126,7 +173,7 @@ export default function Home() {
             <div className="hw-day">
               <div className="hw-day-header">
                 <div className="hw-day-name">Cuma</div>
-                <div className="hw-day-date">15 Nisan</div>
+                <div className="hw-day-date">Tasarım Şablonu</div>
               </div>
               <div className="hw-task">
                 <strong>📝 Haftasonu</strong>
