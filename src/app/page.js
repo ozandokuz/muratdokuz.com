@@ -1,8 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { getDuyurular } from '@/lib/duyurular';
 import { getOdevler } from '@/lib/odevler';
 import HaftaTablosu from '@/components/HaftaTablosu';
 
@@ -14,17 +13,12 @@ export default function Home() {
   useEffect(() => {
     const fetchVeriler = async () => {
       try {
-        const q = query(collection(db, 'duyurular'), orderBy('date', 'desc'), limit(2));
-        const [querySnapshot, odevListesi] = await Promise.all([
-          getDocs(q),
+        const [duyuruListesi, odevListesi] = await Promise.all([
+          getDuyurular(2),
           getOdevler(1),
         ]);
 
-        const fetched = [];
-        querySnapshot.forEach((doc) => {
-          fetched.push({ id: doc.id, ...doc.data() });
-        });
-        setDuyurular(fetched);
+        setDuyurular(duyuruListesi);
         setGuncelOdev(odevListesi[0] ?? null);
       } catch (err) {
         console.error("Ana sayfa verileri çekilirken hata oluştu: ", err);
@@ -55,9 +49,9 @@ export default function Home() {
 
         <div className="grid-2">
           <section id="duyurular">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h2 className="section-title" style={{ margin: 0, paddingBottom: 0 }}>Güncel Duyurular</h2>
-              <Link href="/duyurular" style={{ color: 'var(--color-primary)', fontWeight: 'bold', fontSize: '0.9rem' }}>Tümünü Gör &rarr;</Link>
+            <div className="bolum-basligi">
+              <h2 className="section-title">Güncel Duyurular</h2>
+              <Link href="/duyurular" className="bolum-basligi-link">Tümünü Gör &rarr;</Link>
             </div>
             
             {loading ? (

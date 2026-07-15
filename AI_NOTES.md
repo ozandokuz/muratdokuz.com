@@ -4,9 +4,9 @@
 **Altyapı:** Next.js 16 (App Router), React 19, Vanilla CSS (Tailwind KULLANILMIYOR)
 **Tasarım Dili:** Derin Kırmızı (Kardinal), Turkuaz (Teal) ve Kirli Beyaz (Soft Gray). Modern, yumuşak geçişli ve güven veren bir UI.
 **GitHub Repo:** `https://github.com/ozandokuz/muratdokuz.com`
-**Canlı Site (Vercel):** `main` branch'e her push'ta otomatik deploy.
+**Canlı Site (Vercel):** `https://muratdokuzcom.vercel.app` — `main`'e her push'ta otomatik deploy.
 
-**Son güncelleme:** 15 Temmuz 2026
+**Son güncelleme:** 16 Temmuz 2026
 
 > **Kurallar için `AGENTS.md`'ye bak.** Bu dosya sadece *güncel durum* ve *yapılacaklar* içindir.
 
@@ -17,6 +17,7 @@
 Proje **test aşamasında**. Canlıda olması bilinçli bir tercih — Ozan test edebilmek için istedi.
 
 - **Domain HENÜZ BAĞLI DEĞİL.** Site sadece Vercel'in geçici adresinden erişilebiliyor, kimse URL'yi bilmiyor.
+- **⚠️ 16 Tem 2026'da düzeltildi: GitHub → Vercel otomatik deploy aslında hiç kurulmamıştı.** Bu notlarda "her push'ta otomatik deploy olur" yazıyordu ama doğru değildi; Vercel'de tek bir manuel CLI deploy'u vardı (15 Tem 22:56) ve o tarihten sonraki hiçbir commit canlıya çıkmamıştı. Canlı site 3 saat boyunca admin paneli ve dinamik duyurular olmadan duruyordu. `vercel git connect` ile bağlandı, artık gerçekten otomatik. **Ders: "deploy oldu" varsayma, `npx vercel ls` ile deployment tarihine bak.**
 - **Domain bağlanması en son adım.** Domain bağlanmadan önce aşağıdaki "Domain öncesi zorunlu" listesi bitmiş olmalı.
 - Bu yüzden Firestore'un test modunda olması şu an **kabul edilmiş bir risk**, acil değil. Ama gerçek veli trafiği gelmeden kapatılacak.
 
@@ -32,7 +33,10 @@ Proje **test aşamasında**. Canlıda olması bilinçli bir tercih — Ozan test
 - `/sorular/[id]` — ⚠️ Statik, dosya içinde mock veri objesi var (`matematik`, `turkce`, `fen-bilimleri`).
 - `/hakkimda` — Statik biyografi (zaten dinamik olması gerekmiyor).
 - `/admin` — ✅ Firebase Auth ile giriş çalışıyor.
-- `/admin/dashboard` — ✅ Duyuru + Haftalık Ödev **ekleme** formları çalışıyor. Listeleme/silme yok.
+- `/admin/dashboard` — ✅ Ekleme formları + "Yayınlanan İçerikler" listesi (onaylı silme ile) çalışıyor.
+
+### Mobil
+✅ Hamburger menü var (`src/components/Navbar.js`). 768px altında navbar hamburger'a dönüşür, menü açılır panel olur, aktif sayfa rozetle işaretlenir. 520px altında ödev tablosu tek sütuna iner. Menü **client component** olduğu için `layout.js` server component kalabildi.
 
 ### Firebase (`src/lib/firebase.js`)
 - **Proje:** `muratdokuz-f8e5b`
@@ -54,11 +58,12 @@ Proje **test aşamasında**. Canlıda olması bilinçli bir tercih — Ozan test
 
 2. ~~**`/odevler` sayfasını Firebase'e bağla**~~ ✅ **Bitti (15 Tem 2026).** Detay için aşağıdaki "Ödev sistemi nasıl çalışıyor" bölümüne bak.
 3. **`/sorular` ve `/sorular/[id]` sayfalarını Firebase'e bağla:** `sorular` koleksiyonu oluştur — her belge bir soru bankası: `{ title, subject, description, pdfUrl }`. `pdfUrl`, `public/` klasöründeki dosyayı işaret eder (örn. `/matematik-test-1.pdf`). Admin paneline ekleme formu da yazılacak.
-4. **Admin Paneli - Listeleme & Silme:** Formlar sadece ekleme yapıyor. Ekli duyuru/ödevleri listeleyen, yanında "Sil" butonu olan bir sekme eklenmeli.
+4. ~~**Admin Paneli - Listeleme & Silme**~~ ✅ **Bitti (16 Tem 2026).** Dashboard'ın altında "Yayınlanan İçerikler" bölümü; her satırda tarih + Sil butonu, silmeden önce `confirm()` onayı, silince liste kendini tazeliyor.
 
 ### İkincil
 
 5. **İletişim Formu:** Veliler için `EmailJS` veya `Resend` ile.
+6. **Düzenleme (edit) özelliği:** Şu an bir duyuruyu düzeltmek için silip yeniden yazmak gerekiyor.
 
 ---
 
@@ -85,7 +90,8 @@ Gün sırası ve renkler `globals.css`'teki `.hw-day:nth-child(n)` kurallarına 
 Hiçbiri siteyi bozmuyor, ama biriktikçe iş çıkarır:
 
 - **Tailwind hâlâ kurulu.** `package.json`'da `tailwindcss` + `@tailwindcss/postcss` var ve `postcss.config.mjs` her build'de çalıştırıyor — "Tailwind YOK" kuralına rağmen. `create-next-app` kalıntısı, temizlenecek.
-- **Inline style dağınıklığı.** `AGENTS.md` "stiller globals.css'te" diyor ama sayfalar inline `style={{...}}` dolu. İki sistem karışmış; renk değiştirmek için hem CSS değişkenine hem onlarca dosyaya dokunmak gerekiyor. Yeni kod yazarken globals.css'e class ekle, inline'ı çoğaltma.
+- **Inline style dağınıklığı.** `AGENTS.md` "stiller globals.css'te" diyor ama sayfalar hâlâ inline `style={{...}}` dolu. Yeni yazılan kısımlar (ödev tablosu, admin listesi, mobil menü) class kullanıyor; eski sayfalar temizlenmedi. Yeni kod yazarken globals.css'e class ekle, inline'ı çoğaltma.
+- **`.section-title` ortalama hack'i.** `left: 50%; transform: translateX(-50%)` ile ortalanıyor; bu yüzden flex satırının içine koyunca sola kayıp yanındaki elemanın üstüne biniyor. Şu an `.bolum-basligi` sınıfı bunu iptal ediyor, admin sayfası da elle `left: 0` yazıyor. Doğru çözüm `margin-inline: auto` ile değiştirmek ama tüm kullanımları test etmek gerekir.
 - **Her sayfa `"use client"`.** Duyurular server component'te çekilse SEO kazanılır ve "Yükleniyor..." flaşı kalkar. Next 16'nın asıl kozu kullanılmıyor. Domain bağlanmadan önce en azından `/duyurular` server'a alınabilir.
 - **`storage` boşuna export ediliyor.** `src/lib/firebase.js:21` — Storage kurulmadı ama modül yine de import ediliyor, bundle'a yük.
 - **`alert()` ile bildirim.** Admin panelinde ekleme sonrası `alert()` kullanılıyor. Çalışıyor ama kaba.
@@ -102,7 +108,7 @@ muratdokuz.com/
 ├── src/
 │   ├── app/
 │   │   ├── globals.css         # Tüm stiller burada olmalı (bkz. teknik borç)
-│   │   ├── layout.js           # Navbar (ortak) burada
+│   │   ├── layout.js           # Navbar'ı çağırır (server component)
 │   │   ├── page.js             # ✅ Ana Sayfa - duyurular + güncel hafta dinamik
 │   │   ├── duyurular/page.js   # ✅ Firebase'den dinamik
 │   │   ├── odevler/page.js     # ✅ Firebase'den dinamik
@@ -112,12 +118,14 @@ muratdokuz.com/
 │   │   ├── hakkimda/page.js
 │   │   └── admin/
 │   │       ├── page.js         # ✅ Firebase Auth girişi
-│   │       └── dashboard/page.js  # ✅ Duyuru + Ödev ekleme
+│   │       └── dashboard/page.js  # ✅ Ekleme formları + listeleme/silme
 │   ├── components/
+│   │   ├── Navbar.js           # Hamburger menü (client component)
 │   │   └── HaftaTablosu.js     # Haftalık ödev tablosu (ana sayfa + /odevler ortak)
 │   └── lib/
 │       ├── firebase.js         # Firebase config ve export'lar
-│       └── odevler.js          # Ödev sorgusu + satır ayrıştırma
+│       ├── duyurular.js        # Duyuru sorgusu + silme
+│       └── odevler.js          # Ödev sorgusu + silme + satır ayrıştırma
 ├── AGENTS.md                   # Kalıcı kurallar (Claude + AGY ortak)
 ├── CLAUDE.md                   # AGENTS.md + AI_NOTES.md'yi import eder
 ├── AI_NOTES.md                 # Bu dosya — güncel durum

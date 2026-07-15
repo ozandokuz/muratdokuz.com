@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, query, orderBy, limit } from "firebase/firestore";
 import { db } from "./firebase";
 
 export const GUNLER = [
@@ -37,4 +37,8 @@ export async function getOdevler(adet) {
 
   const snapshot = await getDocs(query(collection(db, "odevler"), ...kisitlar));
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function silOdev(id) {
+  await deleteDoc(doc(db, "odevler", id));
 }

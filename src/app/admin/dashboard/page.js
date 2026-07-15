@@ -1,16 +1,24 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { getDuyurular, silDuyuru } from '@/lib/duyurular';
+import { getOdevler, silOdev } from '@/lib/odevler';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
+  // Yayınlanan içerik listeleri
+  const [duyuruListesi, setDuyuruListesi] = useState([]);
+  const [odevListesi, setOdevListesi] = useState([]);
+  const [listeYukleniyor, setListeYukleniyor] = useState(true);
+  const [silinenId, setSilinenId] = useState(null);
+
   // Duyuru Form State
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -25,21 +33,49 @@ export default function AdminDashboard() {
   const [cuma, setCuma] = useState('');
   const [isOdevSubmitting, setIsOdevSubmitting] = useState(false);
 
+  const listeleriYenile = useCallback(async () => {
+    setListeYukleniyor(true);
+    try {
+      const [duyurular, odevler] = await Promise.all([getDuyurular(), getOdevler()]);
+      setDuyuruListesi(duyurular);
+      setOdevListesi(odevler);
+    } catch (err) {
+      console.error("Listeler çekilirken hata oluştu: ", err);
+    } finally {
+      setListeYukleniyor(false);
+    }
+  }, []);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         router.push('/admin');
       } else {
         setUser(currentUser);
+        listeleriYenile();
       }
       setLoading(false);
     });
     return () => unsubscribe();
-  }, [router]);
+  }, [router, listeleriYenile]);
 
   const handleLogout = async () => {
     await signOut(auth);
     router.push('/admin');
+  };
+
+  const handleSil = async (tur, id, baslik) => {
+    if (!confirm(`"${baslik}" kalıcı olarak silinecek. Emin misiniz?`)) return;
+
+    setSilinenId(id);
+    try {
+      await (tur === 'duyuru' ? silDuyuru(id) : silOdev(id));
+      await listeleriYenile();
+    } catch (err) {
+      console.error(err);
+      alert("Silinemedi: " + err.message);
+    }
+    setSilinenId(null);
   };
 
   const handleAddDuyuru = async (e) => {
@@ -56,6 +92,7 @@ export default function AdminDashboard() {
       alert("Harika! Duyuru başarıyla veritabanına eklendi.");
       setTitle('');
       setContent('');
+      await listeleriYenile();
     } catch (err) {
       console.error(err);
       alert("Bir hata oluştu: " + err.message);
@@ -81,6 +118,7 @@ export default function AdminDashboard() {
       alert("Harika! Haftalık ödev başarıyla veritabanına eklendi.");
       setWeekTitle('');
       setPazartesi(''); setSali(''); setCarsamba(''); setPersembe(''); setCuma('');
+      await listeleriYenile();
     } catch (err) {
       console.error(err);
       alert("Bir hata oluştu: " + err.message);
@@ -178,6 +216,69 @@ export default function AdminDashboard() {
         </div>
 
       </div>
+
+      <h2 className="section-title" style={{ marginTop: '4rem' }}>Yayınlanan İçerikler</h2>
+
+      {listeYukleniyor ? (
+        <p className="durum-mesaji">Yükleniyor...</p>
+      ) : (
+        <div className="grid-2" style={{ marginBottom: '4rem' }}>
+          <div className="card" style={{ borderTop: '4px solid var(--color-primary)' }}>
+            <h3 style={{ color: 'var(--color-primary)', marginBottom: '1rem' }}>
+              📣 Duyurular ({duyuruListesi.length})
+            </h3>
+            {duyuruListesi.length === 0 ? (
+              <p className="liste-bos">Henüz duyuru eklenmemiş.</p>
+            ) : (
+              duyuruListesi.map((duyuru) => (
+                <div key={duyuru.id} className="liste-satir">
+                  <div className="liste-bilgi">
+                    <strong>{duyuru.title}</strong>
+                    <span>{duyuru.date?.toDate ? duyuru.date.toDate().toLocaleDateString('tr-TR') : 'Yeni'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-sil"
+                    disabled={silinenId === duyuru.id}
+                    onClick={() => handleSil('duyuru', duyuru.id, duyuru.title)}
+                  >
+                    {silinenId === duyuru.id ? 'Siliniyor...' : 'Sil'}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="card" style={{ borderTop: '4px solid var(--color-secondary)' }}>
+            <h3 style={{ color: 'var(--color-secondary)', marginBottom: '1rem' }}>
+              📚 Haftalık Ödevler ({odevListesi.length})
+            </h3>
+            {odevListesi.length === 0 ? (
+              <p className="liste-bos">Henüz ödev programı eklenmemiş.</p>
+            ) : (
+              odevListesi.map((odev, index) => (
+                <div key={odev.id} className="liste-satir">
+                  <div className="liste-bilgi">
+                    <strong>
+                      {odev.weekTitle}
+                      {index === 0 && <span className="liste-rozet">Aktif</span>}
+                    </strong>
+                    <span>{odev.date?.toDate ? odev.date.toDate().toLocaleDateString('tr-TR') : 'Yeni'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-sil"
+                    disabled={silinenId === odev.id}
+                    onClick={() => handleSil('odev', odev.id, odev.weekTitle)}
+                  >
+                    {silinenId === odev.id ? 'Siliniyor...' : 'Sil'}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }

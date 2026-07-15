@@ -1,29 +1,24 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { getDuyurular } from '@/lib/duyurular';
 
 export default function Duyurular() {
   const [duyurular, setDuyurular] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hata, setHata] = useState('');
 
   useEffect(() => {
     const fetchDuyurular = async () => {
       try {
-        const q = query(collection(db, 'duyurular'), orderBy('date', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const fetched = [];
-        querySnapshot.forEach((doc) => {
-          fetched.push({ id: doc.id, ...doc.data() });
-        });
-        setDuyurular(fetched);
+        setDuyurular(await getDuyurular());
       } catch (err) {
         console.error("Duyurular çekilirken hata oluştu: ", err);
+        setHata("Duyurular şu anda yüklenemedi. Lütfen sayfayı yenileyin.");
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchDuyurular();
   }, []);
 
@@ -32,7 +27,9 @@ export default function Duyurular() {
       <h1 className="section-title" style={{ marginTop: '2rem' }}>Tüm Duyurular</h1>
       
       {loading ? (
-        <p style={{ textAlign: 'center', marginTop: '3rem', fontSize: '1.2rem', color: 'var(--color-primary)' }}>Yükleniyor...</p>
+        <p className="durum-mesaji">Yükleniyor...</p>
+      ) : hata ? (
+        <div className="card hata-kutusu">{hata}</div>
       ) : duyurular.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
           <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>Henüz yayınlanmış bir duyuru bulunmuyor.</p>
