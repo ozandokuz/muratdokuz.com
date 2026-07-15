@@ -1,65 +1,145 @@
-import Image from "next/image";
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <main className="container">
+        <section className="hero">
+          <div className="hero-content">
+            <h1 className="hero-title">Murat Öğretmen'in Sınıfına Hoş Geldiniz</h1>
+            <p className="hero-subtitle">
+              Sevgili öğrencilerim ve değerli veliler, 3-A sınıfı ile ilgili tüm duyuruları, 
+              haftalık ödevleri ve sınıf içi etkinliklerimizi buradan takip edebilirsiniz. Yeni dönemimiz hepimiz için aydınlık olsun.
+            </p>
+            <div className="hero-actions">
+              <Link href="/odevler" className="btn btn-primary">Tüm Ödevler</Link>
+              <Link href="/duyurular" className="btn btn-secondary">Tüm Duyurular</Link>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid-2">
+          <section id="duyurular">
+            <h2 className="section-title">Güncel Duyurular</h2>
+            
+            <div className="card announcement-card">
+              <div className="date-badge">
+                <div className="date-month">Nis</div>
+                <div className="date-day">15</div>
+              </div>
+              <div className="announcement-content">
+                <h3>Müze Gezisi Hatırlatması</h3>
+                <p>Cuma günü gerçekleştireceğimiz Bilim Müzesi gezisi için izin belgelerini ve katılım paylarını perşembe gününe kadar teslim etmeyi unutmayalım.</p>
+              </div>
+            </div>
+
+            <div className="card announcement-card">
+              <div className="date-badge" style={{ backgroundColor: '#ccfbf1', color: '#0f766e', borderColor: '#99f6e4' }}>
+                <div className="date-month">Nis</div>
+                <div className="date-day">18</div>
+              </div>
+              <div className="announcement-content">
+                <h3>Veli Toplantısı</h3>
+                <p>Önümüzdeki hafta perşembe akşamı saat 19:00'da genel değerlendirme için çevrimiçi (Zoom üzerinden) veli toplantımız olacaktır.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="odevler">
+            <h2 className="section-title">Haftalık Ödev Tablosu</h2>
+            <div className="card" style={{ padding: '2.5rem', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+              <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.5rem' }}>11-15 Nisan Haftası</h3>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '300px' }}>Öğrencilerimiz ödevlerini her günün akşamında düzenli olarak yapmalıdır.</p>
+              <a href="#haftalik" className="btn btn-primary">Tüm Programı Görüntüle</a>
+            </div>
+          </section>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        <section id="haftalik" style={{ marginTop: '5rem', marginBottom: '3rem' }}>
+          <h2 className="section-title">Gün Gün Ödev Dağılımı</h2>
+          <div className="hw-grid">
+            {/* Monday */}
+            <div className="hw-day">
+              <div className="hw-day-header">
+                <div className="hw-day-name">Pazartesi</div>
+                <div className="hw-day-date">11 Nisan</div>
+              </div>
+              <div className="hw-task">
+                <strong>📚 Türkçe</strong>
+                Okuma metni (Sayfa 45) ve soruları cevaplanacak.
+              </div>
+              <div className="hw-task">
+                <strong>✏️ Matematik</strong>
+                Çarpım tablosu tekrarı.
+              </div>
+            </div>
+            
+            {/* Tuesday */}
+            <div className="hw-day">
+              <div className="hw-day-header">
+                <div className="hw-day-name">Salı</div>
+                <div className="hw-day-date">12 Nisan</div>
+              </div>
+              <div className="hw-task">
+                <strong>🧮 Matematik</strong>
+                Problemler kitabı sayfa 22-23 tamamlanacak.
+              </div>
+              <div className="hw-task">
+                <strong>📖 Hayat Bilgisi</strong>
+                Geri dönüşüm araştırma yazısı.
+              </div>
+            </div>
+
+            {/* Wednesday */}
+            <div className="hw-day">
+              <div className="hw-day-header">
+                <div className="hw-day-name">Çarşamba</div>
+                <div className="hw-day-date">13 Nisan</div>
+              </div>
+              <div className="hw-task">
+                <strong>🧪 Fen Bilimleri</strong>
+                Bitkinin bölümleri çizilecek.
+              </div>
+              <div className="hw-task">
+                <strong>📚 Türkçe</strong>
+                Yazım kuralları çalışma kağıdı.
+              </div>
+            </div>
+
+            {/* Thursday */}
+            <div className="hw-day">
+              <div className="hw-day-header">
+                <div className="hw-day-name">Perşembe</div>
+                <div className="hw-day-date">14 Nisan</div>
+              </div>
+              <div className="hw-task">
+                <strong>🎨 Görsel Sanatlar</strong>
+                İlkbahar konulu pastel boya çalışması.
+              </div>
+              <div className="hw-task">
+                <strong>🧮 Matematik</strong>
+                Kesirler giriş çalışma kağıdı.
+              </div>
+            </div>
+
+            {/* Friday */}
+            <div className="hw-day">
+              <div className="hw-day-header">
+                <div className="hw-day-name">Cuma</div>
+                <div className="hw-day-date">15 Nisan</div>
+              </div>
+              <div className="hw-task">
+                <strong>📝 Haftasonu</strong>
+                Seçili hikaye kitabı bitirilecek.
+              </div>
+              <div className="hw-task">
+                <strong>🔍 Tekrar</strong>
+                Haftanın öğrenilen kelimeleri ezberlenecek.
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
-    </div>
+    </>
   );
 }
