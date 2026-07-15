@@ -7,6 +7,8 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { getDuyurular, silDuyuru } from '@/lib/duyurular';
 import { getOdevler, silOdev } from '@/lib/odevler';
+import { getGaleri, silFoto, KATEGORILER } from '@/lib/galeri';
+import { getBaglantilar, silBaglanti, HEDEF_GRUPLAR } from '@/lib/baglantilar';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -16,8 +18,23 @@ export default function AdminDashboard() {
   // Yayınlanan içerik listeleri
   const [duyuruListesi, setDuyuruListesi] = useState([]);
   const [odevListesi, setOdevListesi] = useState([]);
+  const [fotoListesi, setFotoListesi] = useState([]);
+  const [baglantiListesi, setBaglantiListesi] = useState([]);
   const [listeYukleniyor, setListeYukleniyor] = useState(true);
   const [silinenId, setSilinenId] = useState(null);
+
+  // Galeri Form State
+  const [fotoTitle, setFotoTitle] = useState('');
+  const [fotoUrl, setFotoUrl] = useState('');
+  const [fotoKategori, setFotoKategori] = useState(KATEGORILER[0]);
+  const [isFotoSubmitting, setIsFotoSubmitting] = useState(false);
+
+  // Bağlantı Form State
+  const [linkTitle, setLinkTitle] = useState('');
+  const [linkDesc, setLinkDesc] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkGrup, setLinkGrup] = useState(HEDEF_GRUPLAR[0]);
+  const [isLinkSubmitting, setIsLinkSubmitting] = useState(false);
 
   // Duyuru Form State
   const [title, setTitle] = useState('');
@@ -36,9 +53,16 @@ export default function AdminDashboard() {
   const listeleriYenile = useCallback(async () => {
     setListeYukleniyor(true);
     try {
-      const [duyurular, odevler] = await Promise.all([getDuyurular(), getOdevler()]);
+      const [duyurular, odevler, fotolar, baglantilar] = await Promise.all([
+        getDuyurular(),
+        getOdevler(),
+        getGaleri(),
+        getBaglantilar(),
+      ]);
       setDuyuruListesi(duyurular);
       setOdevListesi(odevler);
+      setFotoListesi(fotolar);
+      setBaglantiListesi(baglantilar);
     } catch (err) {
       console.error("Listeler çekilirken hata oluştu: ", err);
     } finally {
@@ -67,9 +91,16 @@ export default function AdminDashboard() {
   const handleSil = async (tur, id, baslik) => {
     if (!confirm(`"${baslik}" kalıcı olarak silinecek. Emin misiniz?`)) return;
 
+    const siliciler = {
+      duyuru: silDuyuru,
+      odev: silOdev,
+      foto: silFoto,
+      baglanti: silBaglanti,
+    };
+
     setSilinenId(id);
     try {
-      await (tur === 'duyuru' ? silDuyuru(id) : silOdev(id));
+      await siliciler[tur](id);
       await listeleriYenile();
     } catch (err) {
       console.error(err);
@@ -124,6 +155,54 @@ export default function AdminDashboard() {
       alert("Bir hata oluştu: " + err.message);
     }
     setIsOdevSubmitting(false);
+  };
+
+  const handleAddFoto = async (e) => {
+    e.preventDefault();
+    if (!fotoTitle || !fotoUrl) return alert("Lütfen başlık ve fotoğraf bağlantısını girin.");
+
+    setIsFotoSubmitting(true);
+    try {
+      await addDoc(collection(db, 'galeri'), {
+        title: fotoTitle,
+        imageUrl: fotoUrl,
+        category: fotoKategori,
+        date: serverTimestamp(),
+      });
+      alert("Fotoğraf galeriye eklendi.");
+      setFotoTitle('');
+      setFotoUrl('');
+      await listeleriYenile();
+    } catch (err) {
+      console.error(err);
+      alert("Bir hata oluştu: " + err.message);
+    }
+    setIsFotoSubmitting(false);
+  };
+
+  const handleAddBaglanti = async (e) => {
+    e.preventDefault();
+    if (!linkTitle || !linkUrl) return alert("Lütfen başlık ve bağlantı adresini girin.");
+
+    setIsLinkSubmitting(true);
+    try {
+      await addDoc(collection(db, 'baglantilar'), {
+        title: linkTitle,
+        description: linkDesc,
+        url: linkUrl,
+        targetGroup: linkGrup,
+        date: serverTimestamp(),
+      });
+      alert("Bağlantı eklendi.");
+      setLinkTitle('');
+      setLinkDesc('');
+      setLinkUrl('');
+      await listeleriYenile();
+    } catch (err) {
+      console.error(err);
+      alert("Bir hata oluştu: " + err.message);
+    }
+    setIsLinkSubmitting(false);
   };
 
   if (loading) return <div style={{ textAlign: 'center', marginTop: '5rem' }}>Yükleniyor...</div>;
@@ -215,6 +294,74 @@ export default function AdminDashboard() {
           </form>
         </div>
 
+        {/* Galeri Ekleme Kartı */}
+        <div className="card" style={{ borderTop: '4px solid #d97706' }}>
+          <h3 style={{ color: '#d97706', marginBottom: '1rem' }}>🖼️ Galeriye Fotoğraf Ekle</h3>
+          <form onSubmit={handleAddFoto} className="admin-form">
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Fotoğraf Başlığı (Örn: Müze Gezisi)"
+              value={fotoTitle}
+              onChange={(e) => setFotoTitle(e.target.value)}
+            />
+            <input
+              type="url"
+              className="form-input"
+              placeholder="Fotoğraf bağlantısı (https://...)"
+              value={fotoUrl}
+              onChange={(e) => setFotoUrl(e.target.value)}
+            />
+            <select className="form-input" value={fotoKategori} onChange={(e) => setFotoKategori(e.target.value)}>
+              {KATEGORILER.map((k) => <option key={k} value={k}>{k}</option>)}
+            </select>
+            <p className="form-ipucu">
+              Cloudinary bağlanınca burası "Fotoğraf Seç" butonuna dönüşecek.
+            </p>
+            <button type="submit" disabled={isFotoSubmitting} className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
+              {isFotoSubmitting ? 'Ekleniyor...' : 'Fotoğrafı Yayınla'}
+            </button>
+          </form>
+        </div>
+
+        {/* Bağlantı Ekleme Kartı */}
+        <div className="card" style={{ borderTop: '4px solid #4f46e5' }}>
+          <h3 style={{ color: '#4f46e5', marginBottom: '1rem' }}>🔗 Faydalı Bağlantı Ekle</h3>
+          <form onSubmit={handleAddBaglanti} className="admin-form">
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Başlık (Örn: EBA Giriş)"
+              value={linkTitle}
+              onChange={(e) => setLinkTitle(e.target.value)}
+            />
+            <textarea
+              className="form-input"
+              rows="2"
+              placeholder="Kısa açıklama (Örn: Dijital kütüphane ve ders tekrarları)"
+              value={linkDesc}
+              onChange={(e) => setLinkDesc(e.target.value)}
+            />
+            <input
+              type="url"
+              className="form-input"
+              placeholder="Adres (https://...)"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+            />
+            <select className="form-input" value={linkGrup} onChange={(e) => setLinkGrup(e.target.value)}>
+              {HEDEF_GRUPLAR.map((g) => (
+                <option key={g} value={g}>
+                  {g === 'Genel' ? 'Genel (her iki sekmede de görünür)' : `${g} sekmesinde`}
+                </option>
+              ))}
+            </select>
+            <button type="submit" disabled={isLinkSubmitting} className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
+              {isLinkSubmitting ? 'Ekleniyor...' : 'Bağlantıyı Yayınla'}
+            </button>
+          </form>
+        </div>
+
       </div>
 
       <h2 className="section-title" style={{ marginTop: '4rem' }}>Yayınlanan İçerikler</h2>
@@ -272,6 +419,60 @@ export default function AdminDashboard() {
                     onClick={() => handleSil('odev', odev.id, odev.weekTitle)}
                   >
                     {silinenId === odev.id ? 'Siliniyor...' : 'Sil'}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="card" style={{ borderTop: '4px solid #d97706' }}>
+            <h3 style={{ color: '#d97706', marginBottom: '1rem' }}>
+              🖼️ Galeri ({fotoListesi.length})
+            </h3>
+            {fotoListesi.length === 0 ? (
+              <p className="liste-bos">Henüz fotoğraf eklenmemiş.</p>
+            ) : (
+              fotoListesi.map((foto) => (
+                <div key={foto.id} className="liste-satir">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="liste-onizleme" src={foto.imageUrl} alt="" />
+                  <div className="liste-bilgi" style={{ flex: 1 }}>
+                    <strong>{foto.title}</strong>
+                    <span>{foto.category}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-sil"
+                    disabled={silinenId === foto.id}
+                    onClick={() => handleSil('foto', foto.id, foto.title)}
+                  >
+                    {silinenId === foto.id ? 'Siliniyor...' : 'Sil'}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="card" style={{ borderTop: '4px solid #4f46e5' }}>
+            <h3 style={{ color: '#4f46e5', marginBottom: '1rem' }}>
+              🔗 Faydalı Bağlantılar ({baglantiListesi.length})
+            </h3>
+            {baglantiListesi.length === 0 ? (
+              <p className="liste-bos">Henüz bağlantı eklenmemiş.</p>
+            ) : (
+              baglantiListesi.map((baglanti) => (
+                <div key={baglanti.id} className="liste-satir">
+                  <div className="liste-bilgi">
+                    <strong>{baglanti.title}</strong>
+                    <span>{baglanti.targetGroup}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-sil"
+                    disabled={silinenId === baglanti.id}
+                    onClick={() => handleSil('baglanti', baglanti.id, baglanti.title)}
+                  >
+                    {silinenId === baglanti.id ? 'Siliniyor...' : 'Sil'}
                   </button>
                 </div>
               ))

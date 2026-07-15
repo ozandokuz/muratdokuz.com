@@ -26,6 +26,8 @@ Bu dosya kalıcı kurallardır. Projenin **güncel durumu** ve yapılacaklar `AI
 |---|---|
 | `duyurular` | `title`, `content`, `date` (serverTimestamp) |
 | `odevler` | `weekTitle`, `pazartesi`, `sali`, `carsamba`, `persembe`, `cuma`, `date` (serverTimestamp) |
+| `galeri` | `title`, `imageUrl`, `category`, `date` (serverTimestamp) |
+| `baglantilar` | `title`, `description`, `url`, `targetGroup`, `date` (serverTimestamp) |
 
 Koleksiyon adları Türkçe, alan adları mevcut haliyle korunur (`weekTitle` gibi karışıklıklar dahil) — yenisini uydurma, şemayı değiştireceksen bu tabloyu da güncelle.
 

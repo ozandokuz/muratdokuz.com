@@ -31,12 +31,16 @@ Proje **test aşamasında**. Canlıda olması bilinçli bir tercih — Ozan test
 - `/odevler` — ✅ Firebase'den dinamik. Güncel hafta açık, geçmiş haftalar `<details>` ile açılır-kapanır.
 - `/sorular` — ⚠️ Statik. "İndir (PDF)" butonları hiçbir şey yapmıyor.
 - `/sorular/[id]` — ⚠️ Statik, dosya içinde mock veri objesi var (`matematik`, `turkce`, `fen-bilimleri`).
+- `/galeri` — ✅ Firebase'den dinamik. KVKK uyarısı, kategori filtresi, lightbox.
+- `/baglantilar` — ✅ Firebase'den dinamik. "Öğrenciler İçin" / "Veliler İçin" sekmeleri.
 - `/hakkimda` — Statik biyografi (zaten dinamik olması gerekmiyor).
 - `/admin` — ✅ Firebase Auth ile giriş çalışıyor.
 - `/admin/dashboard` — ✅ Ekleme formları + "Yayınlanan İçerikler" listesi (onaylı silme ile) çalışıyor.
 
 ### Mobil
-✅ Hamburger menü var (`src/components/Navbar.js`). 768px altında navbar hamburger'a dönüşür, menü açılır panel olur, aktif sayfa rozetle işaretlenir. 520px altında ödev tablosu tek sütuna iner. Menü **client component** olduğu için `layout.js` server component kalabildi.
+✅ Hamburger menü var (`src/components/Navbar.js`). **1024px** altında navbar hamburger'a dönüşür (menü 7 maddeye çıktığı için eşik 768'den yükseltildi — altında etiketler sığmıyordu), menü açılır panel olur, aktif sayfa rozetle işaretlenir. 520px altında ödev tablosu tek sütuna, galeri iki sütuna iner. Menü **client component** olduğu için `layout.js` server component kalabildi.
+
+Menüde kısa etiket (`Galeri`, `Bağlantılar`, `Hakkımda`), sayfa başlığında tam ad (`Fotoğraf Galerisi`, `Faydalı Bağlantılar`) kullanılıyor — 7 uzun etiket masaüstünde sığmıyor.
 
 ### Firebase (`src/lib/firebase.js`)
 - **Proje:** `muratdokuz-f8e5b`
@@ -85,6 +89,21 @@ Gün sırası ve renkler `globals.css`'teki `.hw-day:nth-child(n)` kurallarına 
 
 ---
 
+## 🖼️ Galeri ve fotoğraf yükleme (16 Tem 2026)
+
+**Şu anki durum:** Admin panelinde "Fotoğraf bağlantısı" alanı var, `imageUrl` bir URL string'i olarak kaydediliyor. Galeri sayfası bu URL'yi olduğu gibi gösteriyor.
+
+**Planlanan:** Cloudinary ile panelden doğrudan yükleme. Karar gerekçesi:
+- Firebase Storage **Blaze planı (kredi kartı)** istiyor → elendi.
+- Vercel Blob (Hobby) aylık **1GB trafik** veriyor ve otomatik optimizasyon yapmıyor; 3MB'lık telefon fotoğraflarıyla dolu bir galeri sayfası ~90MB eder → ayda ~11 görüntüleme → elendi.
+- **Cloudinary ücretsiz planı:** kart istemiyor, 25 kredi/ay (~5GB depolama + 10GB trafik) ve **URL üzerinden otomatik boyutlandırma + WebP** veriyor. Aynı sayfa ~4MB'a iniyor.
+
+**Bağlanınca yapılacak:** `unsigned upload preset` ile tarayıcıdan doğrudan yükleme. Admin formundaki URL input'u "Fotoğraf Seç" butonuna dönüşecek; **sayfa kodu ve veri modeli değişmeyecek** çünkü `imageUrl` yine string. Ozan'dan `cloud name` + `preset adı` bekleniyor.
+
+**Not:** Unsigned preset, siteyi okuyan herkesin o preset'e yükleme yapabilmesi demek. Preset ayarlarında format (`jpg/png/webp`), boyut limiti ve `galeri` klasörü kısıtı konulmalı.
+
+---
+
 ## 🧹 Teknik Borç (15 Temmuz 2026 kod incelemesinde çıktı)
 
 Hiçbiri siteyi bozmuyor, ama biriktikçe iş çıkarır:
@@ -96,6 +115,8 @@ Hiçbiri siteyi bozmuyor, ama biriktikçe iş çıkarır:
 - **`storage` boşuna export ediliyor.** `src/lib/firebase.js:21` — Storage kurulmadı ama modül yine de import ediliyor, bundle'a yük.
 - **`alert()` ile bildirim.** Admin panelinde ekleme sonrası `alert()` kullanılıyor. Çalışıyor ama kaba.
 - **Eski yorum:** `src/app/sorular/[id]/page.js` içindeki yorum "Next 15 compatibility" diyor, proje Next 16.
+- **Bozuk fotoğraf linki çirkin görünüyor.** Galeri kartındaki `imageUrl` geçersizse tarayıcının kırık resim ikonu çıkıyor. Cloudinary yüklemesi bağlanınca pratikte olmayacak, ama `onError` ile bir yedek görsel gösterilebilir.
+- **`<img>` kullanılıyor, `next/image` değil.** Galeri dış URL'lerden beslendiği için `next/image` kullanmak `next.config.mjs`'de `remotePatterns` tanımı ister. Cloudinary bağlanınca tek domain olacağı için o zaman geçiş mantıklı — optimizasyonu zaten Cloudinary yapacak.
 
 ---
 
@@ -115,17 +136,22 @@ muratdokuz.com/
 │   │   ├── sorular/
 │   │   │   ├── page.js         # ⚠️ Statik
 │   │   │   └── [id]/page.js    # ⚠️ Statik + mock veri
+│   │   ├── galeri/page.js      # ✅ Filtre + lightbox
+│   │   ├── baglantilar/page.js # ✅ Sekmeli liste
 │   │   ├── hakkimda/page.js
 │   │   └── admin/
 │   │       ├── page.js         # ✅ Firebase Auth girişi
 │   │       └── dashboard/page.js  # ✅ Ekleme formları + listeleme/silme
 │   ├── components/
 │   │   ├── Navbar.js           # Hamburger menü (client component)
+│   │   ├── Lightbox.js         # Galeri modal'ı
 │   │   └── HaftaTablosu.js     # Haftalık ödev tablosu (ana sayfa + /odevler ortak)
 │   └── lib/
 │       ├── firebase.js         # Firebase config ve export'lar
 │       ├── duyurular.js        # Duyuru sorgusu + silme
-│       └── odevler.js          # Ödev sorgusu + silme + satır ayrıştırma
+│       ├── odevler.js          # Ödev sorgusu + silme + satır ayrıştırma
+│       ├── galeri.js           # Galeri sorgusu + silme + KATEGORILER
+│       └── baglantilar.js      # Bağlantı sorgusu + silme + sekme filtresi
 ├── AGENTS.md                   # Kalıcı kurallar (Claude + AGY ortak)
 ├── CLAUDE.md                   # AGENTS.md + AI_NOTES.md'yi import eder
 ├── AI_NOTES.md                 # Bu dosya — güncel durum

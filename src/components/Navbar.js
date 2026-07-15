@@ -8,6 +8,10 @@ const LINKLER = [
   { href: '/duyurular', label: 'Duyurular' },
   { href: '/odevler', label: 'Ödevler' },
   { href: '/sorular', label: 'Soru Bankası' },
+  // Menüde kısa etiket, sayfa başlığında tam ad — 7 madde uzun
+  // etiketlerle masaüstünde navbar'a sığmıyor.
+  { href: '/galeri', label: 'Galeri' },
+  { href: '/baglantilar', label: 'Bağlantılar' },
   { href: '/hakkimda', label: 'Hakkımda' },
 ];
 

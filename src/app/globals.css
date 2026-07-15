@@ -442,6 +442,256 @@ body {
   margin-bottom: 1.5rem;
 }
 
+/* KVKK uyarısı */
+.kvkk-uyari {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.25rem;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* Filtre / sekme butonları */
+.filtre-satiri,
+.sekme-satiri {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.filtre-btn,
+.sekme-btn {
+  background-color: var(--card-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--color-muted);
+  border-radius: 2rem;
+  padding: 0.55rem 1.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.filtre-btn:hover,
+.sekme-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filtre-btn.aktif,
+.sekme-btn.aktif {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+/* Galeri */
+.galeri-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.galeri-kart {
+  padding: 0;
+  border: none;
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.galeri-kart:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.galeri-kart img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background-color: var(--color-muted);
+}
+
+.galeri-kart-bilgi {
+  padding: 0.9rem 1rem;
+}
+
+.galeri-kart-bilgi strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.galeri-kart-bilgi span {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background-color: rgba(28, 25, 23, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.lightbox-kapat {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 2.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.lightbox-icerik {
+  max-width: 900px;
+  width: 100%;
+  cursor: default;
+}
+
+.lightbox-icerik img {
+  display: block;
+  max-width: 100%;
+  max-height: 75vh;
+  margin: 0 auto;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+}
+
+.lightbox-icerik figcaption {
+  text-align: center;
+  color: #ffffff;
+  margin-top: 1rem;
+}
+
+.lightbox-icerik figcaption strong {
+  display: block;
+  font-size: 1.1rem;
+}
+
+.lightbox-icerik figcaption span {
+  font-size: 0.85rem;
+  color: #d6d3d1;
+}
+
+/* Faydalı bağlantılar */
+.baglanti-kart {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+
+.baglanti-baslik {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.baglanti-baslik h3 {
+  color: var(--color-primary);
+  font-size: 1.15rem;
+}
+
+.baglanti-kart p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.dis-link-ikon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.2s ease;
+}
+
+.baglanti-kart:hover .dis-link-ikon {
+  stroke: var(--color-primary);
+}
+
+.baglanti-rozet {
+  display: inline-block;
+  margin-top: 0.9rem;
+  background-color: #ccfbf1;
+  color: #0f766e;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+}
+
+/* Admin — form alanları */
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-muted);
+  background-color: #fafaf9;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--text-primary);
+}
+
+.form-input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+textarea.form-input {
+  resize: vertical;
+}
+
+.form-ipucu {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: -0.35rem;
+}
+
+.liste-onizleme {
+  width: 44px;
+  height: 44px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  flex-shrink: 0;
+  background-color: var(--color-muted);
+}
+
 /* Admin — yayınlanan içerik listesi */
 .liste-satir {
   display: flex;
@@ -535,40 +785,13 @@ body {
 }
 
 /* Responsive */
+/* Navbar 7 maddeye çıktığı için hamburger eşiği 1024px — bu genişliğin
+   altında etiketler yan yana sığmayıp sarılıyordu. */
 @media (max-width: 1024px) {
   .hw-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-}
 
-@media (max-width: 768px) {
-  .container {
-    padding: 1.5rem 1rem;
-  }
-  .grid-2 {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-  .hw-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .hero {
-    padding: 3rem 1.5rem;
-    text-align: center;
-  }
-  .hero-title {
-    font-size: 2.25rem;
-  }
-  .hero-subtitle {
-    font-size: 1.05rem;
-    margin-bottom: 2rem;
-  }
-  .hero-actions {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  /* Navbar hamburger menüye dönüşür */
   .navbar {
     padding: 1rem 1.25rem;
   }
@@ -611,6 +834,34 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .hw-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hero {
+    padding: 3rem 1.5rem;
+    text-align: center;
+  }
+  .hero-title {
+    font-size: 2.25rem;
+  }
+  .hero-subtitle {
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+  }
+  .hero-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
 @media (max-width: 520px) {
   .hw-grid {
     grid-template-columns: 1fr;
@@ -620,5 +871,12 @@ body {
   }
   .hero {
     padding: 2.5rem 1.25rem;
+  }
+  .galeri-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .lightbox {
+    padding: 1rem;
   }
 }
