@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useState } from 'react';
-import { fotoYukle, optimizeUrl } from '@/lib/cloudinary';
+import { fotoYukle, dosyayiDenetle, optimizeUrl } from '@/lib/cloudinary';
 
 export default function FotoYukle({ deger, onYuklendi }) {
   const [yukleniyor, setYukleniyor] = useState(false);
@@ -11,6 +11,18 @@ export default function FotoYukle({ deger, onYuklendi }) {
     const dosya = e.target.files?.[0];
     if (!dosya) return;
 
+    const sifirla = () => {
+      // Aynı dosyayı tekrar seçebilmek için input'u sıfırla.
+      if (inputRef.current) inputRef.current.value = '';
+    };
+
+    const dosyaHatasi = dosyayiDenetle(dosya);
+    if (dosyaHatasi) {
+      setHata(dosyaHatasi);
+      sifirla();
+      return;
+    }
+
     setHata('');
     setYukleniyor(true);
     try {
@@ -20,8 +32,7 @@ export default function FotoYukle({ deger, onYuklendi }) {
       setHata('Fotoğraf yüklenemedi. Tekrar deneyin.');
     } finally {
       setYukleniyor(false);
-      // Aynı dosyayı tekrar seçebilmek için input'u sıfırla.
-      if (inputRef.current) inputRef.current.value = '';
+      sifirla();
     }
   };
 
@@ -31,7 +42,7 @@ export default function FotoYukle({ deger, onYuklendi }) {
         ref={inputRef}
         id="foto-dosya"
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         onChange={handleDosya}
         disabled={yukleniyor}
         hidden

@@ -8,6 +8,24 @@ export const CLOUD_NAME = "zchruwpo";
 export const UPLOAD_PRESET = "dokuzm";
 const KLASOR = "galeri";
 
+export const IZINLI_TURLER = ["image/jpeg", "image/png", "image/webp"];
+export const MAKS_BAYT = 10 * 1024 * 1024; // 10 MB
+
+// Yüklemeden önce dosyayı ele. Bu bir güvenlik sınırı DEĞİL — tarayıcıdaki
+// kontrol atlanabilir, gerçek sınır Cloudinary preset'indeki "Upload Control"
+// ayarları. Buradaki kontrol öğretmen yanlış dosya seçtiğinde 10MB'ı boşuna
+// yükleyip hata almasın diye.
+export function dosyayiDenetle(dosya) {
+  if (!IZINLI_TURLER.includes(dosya.type)) {
+    return "Sadece JPG, PNG veya WEBP yükleyebilirsiniz.";
+  }
+  if (dosya.size > MAKS_BAYT) {
+    const mb = (dosya.size / 1024 / 1024).toFixed(1);
+    return `Fotoğraf çok büyük (${mb} MB). En fazla 10 MB olmalı.`;
+  }
+  return null;
+}
+
 // Tarayıcıdan doğrudan Cloudinary'ye yükler, görselin kalıcı adresini döner.
 export async function fotoYukle(dosya) {
   const form = new FormData();
