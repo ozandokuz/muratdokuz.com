@@ -12,6 +12,22 @@
 
 ---
 
+## 👉 NEREDE KALDIK (16 Tem 2026, gece)
+
+**Sıradaki iş: soru bankasını Firebase'e bağlamak.** Sitede statik kalan tek yer orası — `/sorular` ve `/sorular/[id]` hâlâ dosyanın içindeki mock veri objesiyle çalışıyor, "İndir (PDF)" butonları hiçbir şey yapmıyor. Aşağıdaki "Yapılacaklar" listesinde 3. madde, detayı orada.
+
+**Başlamadan önce Ozan'a sorulacak:** elinde hangi PDF'ler var? Dosyalar `public/` klasörüne konacak (Storage yok, bkz. AGENTS.md), o yüzden `pdfUrl` alanına ne yazılacağını bilmek gerekiyor.
+
+**Ozan'da bekleyen (acil değil, ikisi de opsiyonel):**
+- Cloudinary Media Library'deki iki test dosyasını silmek.
+- İsterse `allowed_formats` curl'ünü çalıştırmak (aşağıda Cloudinary bölümünde).
+
+**Bu oturumda bitenler:** ödevler Firebase'e bağlandı · admin listeleme/silme · mobil hamburger menü · galeri + faydalı bağlantılar sayfaları · Cloudinary yükleme · GitHub→Vercel otomatik deploy düzeltildi.
+
+**Veritabanı şu an neredeyse boş:** sadece 1 duyuru ("Emeklilik Duyurusu") var; `odevler`, `galeri`, `baglantilar` boş. Sayfalar bu yüzden "henüz yok" gösteriyor — **hata değil**. Test etmek için admin panelinden içerik ekle.
+
+---
+
 ## 🔴 Projenin Aşaması (ÖNCE BUNU OKU)
 
 Proje **test aşamasında**. Canlıda olması bilinçli bir tercih — Ozan test edebilmek için istedi.
@@ -107,9 +123,25 @@ Admin panelinde **"📷 Fotoğraf Seç"** butonu var; öğretmen dosyayı seçer
 
 `optimizeUrl` Cloudinary dışı adresleri **olduğu gibi bırakır**, eski/elle girilmiş linkler bozulmaz.
 
-**Yapılacak:** Preset'te `Allowed formats` (jpg/png/webp) ve `Max file size` kısıtları **henüz konulmadı**. Unsigned preset, siteyi okuyan herkesin oraya yükleme yapabilmesi demek — bu kısıtlar konulmalı.
+**Tarayıcı tarafı kontrol var:** `dosyayiDenetle()` yüklemeden önce türü (jpg/png/webp) ve boyutu (≤10MB) kontrol ediyor. **Bu bir güvenlik sınırı değil** — kodu okuyan biri atlayabilir. Öğretmen yanlış dosya seçince boşuna yükleme yapmasın diye.
+
+**⚠️ Preset kısıtları konulamadı — arama yapıp zaman harcamayın:** `Allowed formats` ve `Max file size` **Cloudinary'nin yeni konsolunda YOK.** Preset editörünün altı sekmesinin (General / Transform / Manage and Analyze / Optimize and Deliver / Advanced / Addons) hepsine bakıldı. Dokümantasyonda geçen "Upload Control" bölümü **eski arayüze ait**, artık öyle bir sekme yok.
+
+Tek yol Admin API. Ozan kendi secret'ıyla şunu çalıştırabilir (secret repoya/Claude'a girmez):
+```bash
+curl -X PUT "https://api.cloudinary.com/v1_1/zchruwpo/upload_presets/dokuzm" \
+  -u "114958297412555:SECRET" \
+  -d "allowed_formats=jpg,png,webp"
+```
+`allowed_formats` API'de var. `max_file_size`'ın preset üzerinden ayarlanabildiği **doğrulanmadı**, kaynaklar çelişiyor.
+
+**Karar: domain öncesine bırakıldı.** Gerekçe: koruduğu senaryo birinin siteyi bulup JS'ten preset adını çıkarıp hesaba çöp yüklemesi; domain yok, adres bilinmiyor, tarayıcı kontrolü var. Bu ölçekte öncelik değil.
 
 **Not:** Unsigned upload ile yüklenen dosya API secret olmadan **silinemez**. Admin panelinden bir fotoğrafı silmek Firestore kaydını siler ama dosya Cloudinary'de kalır. Ücretsiz kota için sorun değil; temizlik gerekirse Cloudinary Media Library'den elle yapılır.
+
+Kısmi çözüm mevcut ama bağlanmadı: preset'in **Advanced** sekmesindeki `Return delete token` açılırsa yükleme sonrası 10 dakika geçerli bir silme jetonu dönüyor. Formdaki "Kaldır" butonu böylece öksüz dosya bırakmaz. Sadece 10 dakikalık pencere olduğu için panelden eski fotoğrafı silmeyi çözmez. Ozan'a soruldu, öncelik verilmedi.
+
+**Media Library'de iki test dosyası duruyor** (preset denenirken yüklendi, secret olmadığı için silinemedi): kökte `glxmiicszfj5ciwkfryr` ve `galeri/kg5glvomahbaq0y3omen`. Ozan elle silecek.
 
 ---
 
