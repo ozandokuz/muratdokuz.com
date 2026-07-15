@@ -3,29 +3,37 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { getOdevler } from '@/lib/odevler';
+import HaftaTablosu from '@/components/HaftaTablosu';
 
 export default function Home() {
   const [duyurular, setDuyurular] = useState([]);
+  const [guncelOdev, setGuncelOdev] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDuyurular = async () => {
+    const fetchVeriler = async () => {
       try {
         const q = query(collection(db, 'duyurular'), orderBy('date', 'desc'), limit(2));
-        const querySnapshot = await getDocs(q);
+        const [querySnapshot, odevListesi] = await Promise.all([
+          getDocs(q),
+          getOdevler(1),
+        ]);
+
         const fetched = [];
         querySnapshot.forEach((doc) => {
           fetched.push({ id: doc.id, ...doc.data() });
         });
         setDuyurular(fetched);
+        setGuncelOdev(odevListesi[0] ?? null);
       } catch (err) {
-        console.error("Duyurular çekilirken hata oluştu: ", err);
+        console.error("Ana sayfa verileri çekilirken hata oluştu: ", err);
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchDuyurular();
+
+    fetchVeriler();
   }, []);
 
   return (
@@ -95,96 +103,35 @@ export default function Home() {
           <section id="odevler">
             <h2 className="section-title">Haftalık Ödev Tablosu</h2>
             <div className="card" style={{ padding: '2.5rem', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-              <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.5rem' }}>Örnek Şablon Haftası</h3>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '300px' }}>Ödev sistemi veritabanına bağlanana kadar bu alan tasarım ön izlemesi olarak kalacaktır.</p>
-              <a href="#haftalik" className="btn btn-primary">Tüm Programı Görüntüle</a>
+              {loading ? (
+                <p style={{ color: 'var(--text-secondary)' }}>Yükleniyor...</p>
+              ) : guncelOdev ? (
+                <>
+                  <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.5rem' }}>{guncelOdev.weekTitle}</h3>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '300px' }}>Bu haftanın gün gün ödev dağılımını aşağıdan inceleyebilirsiniz.</p>
+                  <a href="#haftalik" className="btn btn-primary">Tüm Programı Görüntüle</a>
+                </>
+              ) : (
+                <>
+                  <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.5rem' }}>Ödev Yayınlanmadı</h3>
+                  <p style={{ color: 'var(--text-secondary)', maxWidth: '300px' }}>Bu hafta için henüz bir ödev programı paylaşılmadı.</p>
+                </>
+              )}
             </div>
           </section>
         </div>
 
         <section id="haftalik" style={{ marginTop: '5rem', marginBottom: '3rem' }}>
-          <h2 className="section-title">Gün Gün Ödev Dağılımı (Ön İzleme)</h2>
-          <div className="hw-grid">
-            {/* Monday */}
-            <div className="hw-day">
-              <div className="hw-day-header">
-                <div className="hw-day-name">Pazartesi</div>
-                <div className="hw-day-date">Tasarım Şablonu</div>
-              </div>
-              <div className="hw-task">
-                <strong>📚 Türkçe</strong>
-                Okuma metni (Sayfa 45) ve soruları cevaplanacak.
-              </div>
-              <div className="hw-task">
-                <strong>✏️ Matematik</strong>
-                Çarpım tablosu tekrarı.
-              </div>
+          <h2 className="section-title">Gün Gün Ödev Dağılımı</h2>
+          {loading ? (
+            <p className="durum-mesaji">Yükleniyor...</p>
+          ) : guncelOdev ? (
+            <HaftaTablosu odev={guncelOdev} />
+          ) : (
+            <div className="card bos-durum">
+              <p>Henüz bir ödev programı yayınlanmadı.</p>
             </div>
-            
-            {/* Tuesday */}
-            <div className="hw-day">
-              <div className="hw-day-header">
-                <div className="hw-day-name">Salı</div>
-                <div className="hw-day-date">Tasarım Şablonu</div>
-              </div>
-              <div className="hw-task">
-                <strong>🧮 Matematik</strong>
-                Problemler kitabı sayfa 22-23 tamamlanacak.
-              </div>
-              <div className="hw-task">
-                <strong>📖 Hayat Bilgisi</strong>
-                Geri dönüşüm araştırma yazısı.
-              </div>
-            </div>
-
-            {/* Wednesday */}
-            <div className="hw-day">
-              <div className="hw-day-header">
-                <div className="hw-day-name">Çarşamba</div>
-                <div className="hw-day-date">Tasarım Şablonu</div>
-              </div>
-              <div className="hw-task">
-                <strong>🧪 Fen Bilimleri</strong>
-                Bitkinin bölümleri çizilecek.
-              </div>
-              <div className="hw-task">
-                <strong>📚 Türkçe</strong>
-                Yazım kuralları çalışma kağıdı.
-              </div>
-            </div>
-
-            {/* Thursday */}
-            <div className="hw-day">
-              <div className="hw-day-header">
-                <div className="hw-day-name">Perşembe</div>
-                <div className="hw-day-date">Tasarım Şablonu</div>
-              </div>
-              <div className="hw-task">
-                <strong>🎨 Görsel Sanatlar</strong>
-                İlkbahar konulu pastel boya çalışması.
-              </div>
-              <div className="hw-task">
-                <strong>🧮 Matematik</strong>
-                Kesirler giriş çalışma kağıdı.
-              </div>
-            </div>
-
-            {/* Friday */}
-            <div className="hw-day">
-              <div className="hw-day-header">
-                <div className="hw-day-name">Cuma</div>
-                <div className="hw-day-date">Tasarım Şablonu</div>
-              </div>
-              <div className="hw-task">
-                <strong>📝 Haftasonu</strong>
-                Seçili hikaye kitabı bitirilecek.
-              </div>
-              <div className="hw-task">
-                <strong>🔍 Tekrar</strong>
-                Haftanın öğrenilen kelimeleri ezberlenecek.
-              </div>
-            </div>
-          </div>
+          )}
         </section>
       </main>
     </>

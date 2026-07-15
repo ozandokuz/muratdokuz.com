@@ -25,9 +25,9 @@ Proje **test aşamasında**. Canlıda olması bilinçli bir tercih — Ozan test
 ## ✅ Mevcut Durum
 
 ### Sayfalar ve Rotalar
-- `/` — Ana Sayfa. Duyurular Firebase'den ✅ dinamik. Ödev bölümü ⚠️ hâlâ statik şablon.
+- `/` — Ana Sayfa. Duyurular ✅ dinamik. Ödev bölümü de ✅ dinamik (en güncel haftayı gösterir).
 - `/duyurular` — ✅ Firebase'den dinamik, çalışıyor.
-- `/odevler` — ⚠️ Statik. Hardcoded "11-15 Nisan Haftası" gösteriyor.
+- `/odevler` — ✅ Firebase'den dinamik. Güncel hafta açık, geçmiş haftalar `<details>` ile açılır-kapanır.
 - `/sorular` — ⚠️ Statik. "İndir (PDF)" butonları hiçbir şey yapmıyor.
 - `/sorular/[id]` — ⚠️ Statik, dosya içinde mock veri objesi var (`matematik`, `turkce`, `fen-bilimleri`).
 - `/hakkimda` — Statik biyografi (zaten dinamik olması gerekmiyor).
@@ -38,6 +38,7 @@ Proje **test aşamasında**. Canlıda olması bilinçli bir tercih — Ozan test
 - **Proje:** `muratdokuz-f8e5b`
 - **Auth:** E-posta/Şifre aktif. Yönetici: `admin@muratdokuz.com`
 - **Firestore:** ⚠️ **Test modunda** (şema için `AGENTS.md`'ye bak).
+- **Veri durumu (15 Tem 2026):** `duyurular` içinde 1 kayıt var. **`odevler` koleksiyonu tamamen boş** — admin formu bugüne dek hiç kullanılmamış. Bu yüzden `/odevler` ve ana sayfanın ödev bölümü şu an "Henüz bir ödev programı yayınlanmadı" gösteriyor; bu **doğru davranış, hata değil**. Test etmek için admin panelinden bir hafta ekle.
 - **Storage:** Kurulmadı (Spark planında ücretli). PDF'ler `public/` klasöründen servis edilecek.
 
 ---
@@ -51,13 +52,31 @@ Proje **test aşamasında**. Canlıda olması bilinçli bir tercih — Ozan test
 
 ### Öncelikli özellikler
 
-2. **`/odevler` sayfasını Firebase'e bağla:** `odevler` koleksiyonundan en güncel haftayı çekip listele. Admin formu hazır, sadece okuma yazılacak. Ana sayfadaki statik ödev bloğu da (`src/app/page.js` içindeki `hw-grid`) buradan beslenmeli.
+2. ~~**`/odevler` sayfasını Firebase'e bağla**~~ ✅ **Bitti (15 Tem 2026).** Detay için aşağıdaki "Ödev sistemi nasıl çalışıyor" bölümüne bak.
 3. **`/sorular` ve `/sorular/[id]` sayfalarını Firebase'e bağla:** `sorular` koleksiyonu oluştur — her belge bir soru bankası: `{ title, subject, description, pdfUrl }`. `pdfUrl`, `public/` klasöründeki dosyayı işaret eder (örn. `/matematik-test-1.pdf`). Admin paneline ekleme formu da yazılacak.
 4. **Admin Paneli - Listeleme & Silme:** Formlar sadece ekleme yapıyor. Ekli duyuru/ödevleri listeleyen, yanında "Sil" butonu olan bir sekme eklenmeli.
 
 ### İkincil
 
 5. **İletişim Formu:** Veliler için `EmailJS` veya `Resend` ile.
+
+---
+
+## 📐 Ödev sistemi nasıl çalışıyor
+
+Admin panelindeki form her günü **tek bir textarea** olarak kaydeder. Ekrandaki kartlara dönüşmesi bir metin ayrıştırma kuralına dayanır — bilmeden dokunma:
+
+- **Satır başına bir görev.** Öğretmen Enter'a basarak birden fazla ders yazar.
+- **`Ders: açıklama` biçimi.** İlk iki noktadan bölünür; sol taraf kalın başlık (`<strong>`), sağ taraf açıklama olur.
+  - Örnek: `📚 Türkçe: Okuma metni sayfa 45` → **📚 Türkçe** başlığı + "Okuma metni sayfa 45" metni.
+- **İki nokta yoksa** satırın tamamı açıklama olarak basılır, başlık çıkmaz. (Bozulmaz, sadece kalın başlıksız görünür.)
+- **Boş gün** bırakılırsa o kart "Ödev yok" gösterir.
+
+İlgili dosyalar:
+- `src/lib/odevler.js` — `GUNLER` listesi, `parseGorevler()` ayrıştırıcı, `getOdevler(adet)` sorgusu.
+- `src/components/HaftaTablosu.js` — bir haftayı `hw-grid` olarak basan ortak bileşen. Hem ana sayfa hem `/odevler` bunu kullanır, tabloyu değiştireceksen tek yer burası.
+
+Gün sırası ve renkler `globals.css`'teki `.hw-day:nth-child(n)` kurallarına bağlı — `GUNLER` dizisinin sırasını değiştirirsen renkler kayar.
 
 ---
 
@@ -84,9 +103,9 @@ muratdokuz.com/
 │   ├── app/
 │   │   ├── globals.css         # Tüm stiller burada olmalı (bkz. teknik borç)
 │   │   ├── layout.js           # Navbar (ortak) burada
-│   │   ├── page.js             # Ana Sayfa - duyurular dinamik, ödevler statik
+│   │   ├── page.js             # ✅ Ana Sayfa - duyurular + güncel hafta dinamik
 │   │   ├── duyurular/page.js   # ✅ Firebase'den dinamik
-│   │   ├── odevler/page.js     # ⚠️ Statik
+│   │   ├── odevler/page.js     # ✅ Firebase'den dinamik
 │   │   ├── sorular/
 │   │   │   ├── page.js         # ⚠️ Statik
 │   │   │   └── [id]/page.js    # ⚠️ Statik + mock veri
@@ -94,8 +113,11 @@ muratdokuz.com/
 │   │   └── admin/
 │   │       ├── page.js         # ✅ Firebase Auth girişi
 │   │       └── dashboard/page.js  # ✅ Duyuru + Ödev ekleme
+│   ├── components/
+│   │   └── HaftaTablosu.js     # Haftalık ödev tablosu (ana sayfa + /odevler ortak)
 │   └── lib/
-│       └── firebase.js         # Firebase config ve export'lar
+│       ├── firebase.js         # Firebase config ve export'lar
+│       └── odevler.js          # Ödev sorgusu + satır ayrıştırma
 ├── AGENTS.md                   # Kalıcı kurallar (Claude + AGY ortak)
 ├── CLAUDE.md                   # AGENTS.md + AI_NOTES.md'yi import eder
 ├── AI_NOTES.md                 # Bu dosya — güncel durum

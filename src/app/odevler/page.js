@@ -1,22 +1,65 @@
+"use client";
+import React, { useEffect, useState } from 'react';
+import { getOdevler } from '@/lib/odevler';
+import HaftaTablosu from '@/components/HaftaTablosu';
+
 export default function Odevler() {
+  const [odevler, setOdevler] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [hata, setHata] = useState('');
+
+  useEffect(() => {
+    const fetchOdevler = async () => {
+      try {
+        setOdevler(await getOdevler());
+      } catch (err) {
+        console.error("Ödevler çekilirken hata oluştu: ", err);
+        setHata("Ödevler şu anda yüklenemedi. Lütfen sayfayı yenileyin.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOdevler();
+  }, []);
+
+  const [guncel, ...gecmis] = odevler;
+
   return (
     <main className="container">
       <h1 className="section-title" style={{ marginTop: '2rem' }}>Geçmiş ve Güncel Ödevler</h1>
-      
-      <div className="card" style={{ marginBottom: '2rem', borderTop: '4px solid var(--color-primary)' }}>
-        <h3 style={{ marginBottom: '1rem' }}>11 - 15 Nisan Haftası (Aktif)</h3>
-        <p style={{ color: 'var(--text-secondary)' }}>Bu haftanın detaylı ödev dağılımını ana sayfada görebilirsiniz. Tüm testler soru bankasından verilmiştir.</p>
-      </div>
 
-      <div className="card" style={{ marginBottom: '2rem' }}>
-        <h3 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>4 - 8 Nisan Haftası</h3>
-        <p style={{ color: 'var(--text-secondary)' }}>Matematik zaman ölçüleri tamamlandı, Türkçe hikaye haritası oluşturma ödevi teslim edildi.</p>
-      </div>
+      {loading ? (
+        <p className="durum-mesaji">Yükleniyor...</p>
+      ) : hata ? (
+        <div className="card hata-kutusu">{hata}</div>
+      ) : !guncel ? (
+        <div className="card bos-durum">
+          <p>Henüz bir ödev programı yayınlanmadı.</p>
+        </div>
+      ) : (
+        <>
+          <section>
+            <div className="hafta-baslik">
+              <h2>{guncel.weekTitle}</h2>
+              <span className="hafta-rozet">Aktif Hafta</span>
+            </div>
+            <HaftaTablosu odev={guncel} />
+          </section>
 
-      <div className="card" style={{ marginBottom: '2rem' }}>
-        <h3 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>28 Mart - 1 Nisan Haftası</h3>
-        <p style={{ color: 'var(--text-secondary)' }}>Fen bilimleri bitki çimlendirme deneyi sonuçları gözlemlendi.</p>
-      </div>
+          {gecmis.length > 0 && (
+            <section style={{ marginTop: '4rem', marginBottom: '3rem' }}>
+              <h2 className="section-title">Geçmiş Haftalar</h2>
+              {gecmis.map((odev) => (
+                <details key={odev.id} className="gecmis-hafta">
+                  <summary>{odev.weekTitle}</summary>
+                  <HaftaTablosu odev={odev} />
+                </details>
+              ))}
+            </section>
+          )}
+        </>
+      )}
     </main>
   );
 }
