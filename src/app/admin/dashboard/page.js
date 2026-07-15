@@ -9,6 +9,8 @@ import { getDuyurular, silDuyuru } from '@/lib/duyurular';
 import { getOdevler, silOdev } from '@/lib/odevler';
 import { getGaleri, silFoto, KATEGORILER } from '@/lib/galeri';
 import { getBaglantilar, silBaglanti, HEDEF_GRUPLAR } from '@/lib/baglantilar';
+import { optimizeUrl } from '@/lib/cloudinary';
+import FotoYukle from '@/components/FotoYukle';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -159,7 +161,7 @@ export default function AdminDashboard() {
 
   const handleAddFoto = async (e) => {
     e.preventDefault();
-    if (!fotoTitle || !fotoUrl) return alert("Lütfen başlık ve fotoğraf bağlantısını girin.");
+    if (!fotoTitle || !fotoUrl) return alert("Lütfen bir başlık girin ve fotoğraf seçin.");
 
     setIsFotoSubmitting(true);
     try {
@@ -305,19 +307,10 @@ export default function AdminDashboard() {
               value={fotoTitle}
               onChange={(e) => setFotoTitle(e.target.value)}
             />
-            <input
-              type="url"
-              className="form-input"
-              placeholder="Fotoğraf bağlantısı (https://...)"
-              value={fotoUrl}
-              onChange={(e) => setFotoUrl(e.target.value)}
-            />
+            <FotoYukle deger={fotoUrl} onYuklendi={setFotoUrl} />
             <select className="form-input" value={fotoKategori} onChange={(e) => setFotoKategori(e.target.value)}>
               {KATEGORILER.map((k) => <option key={k} value={k}>{k}</option>)}
             </select>
-            <p className="form-ipucu">
-              Cloudinary bağlanınca burası "Fotoğraf Seç" butonuna dönüşecek.
-            </p>
             <button type="submit" disabled={isFotoSubmitting} className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
               {isFotoSubmitting ? 'Ekleniyor...' : 'Fotoğrafı Yayınla'}
             </button>
@@ -435,7 +428,7 @@ export default function AdminDashboard() {
               fotoListesi.map((foto) => (
                 <div key={foto.id} className="liste-satir">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="liste-onizleme" src={foto.imageUrl} alt="" />
+                  <img className="liste-onizleme" src={optimizeUrl(foto.imageUrl, 100)} alt="" />
                   <div className="liste-bilgi" style={{ flex: 1 }}>
                     <strong>{foto.title}</strong>
                     <span>{foto.category}</span>

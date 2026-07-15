@@ -1,6 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { getGaleri } from '@/lib/galeri';
+import { optimizeUrl } from '@/lib/cloudinary';
 import Lightbox from '@/components/Lightbox';
 
 const TUMU = 'Tümü';
@@ -82,8 +83,9 @@ export default function Galeri() {
                 className="galeri-kart"
                 onClick={() => setSecilenFoto(foto)}
               >
+                {/* Kart küçük — 600px yeterli, tam boy indirmeye gerek yok */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={foto.imageUrl} alt={foto.title} loading="lazy" />
+                <img src={optimizeUrl(foto.imageUrl, 600)} alt={foto.title} loading="lazy" />
                 <div className="galeri-kart-bilgi">
                   <strong>{foto.title}</strong>
                   <span>{foto.category}</span>

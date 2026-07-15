@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from 'react';
+import { optimizeUrl } from '@/lib/cloudinary';
 
 export default function Lightbox({ foto, onKapat }) {
   // Esc ile kapansın; modal açıkken arka plan kaymasın.
@@ -38,8 +39,9 @@ export default function Lightbox({ foto, onKapat }) {
 
       {/* İçeriğe tıklayınca kapanmasın, sadece arka plana tıklayınca kapansın */}
       <figure className="lightbox-icerik" onClick={(e) => e.stopPropagation()}>
+        {/* Büyük görünüm — 1400px retina ekranlarda da yeterli */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={foto.imageUrl} alt={foto.title} />
+        <img src={optimizeUrl(foto.imageUrl, 1400)} alt={foto.title} />
         <figcaption>
           <strong>{foto.title}</strong>
           <span>

@@ -13,6 +13,7 @@ Bu dosya kalıcı kurallardır. Projenin **güncel durumu** ve yapılacaklar `AI
 - **Vanilla CSS. Tailwind YOK.** Hiçbir CSS framework eklenmeyecek. Stiller `src/app/globals.css` içindeki CSS değişkenleri ile yazılır.
 - **Arayüz dili Türkçe.** Kullanıcıya görünen tüm metinler, buton etiketleri ve hata mesajları Türkçe.
 - **Firebase Storage kullanılmıyor** (Spark planında ücretli). PDF'ler `public/` klasörüne konur, `/dosya.pdf` şeklinde servis edilir.
+- **Fotoğraflar Cloudinary'de.** Yükleme `src/lib/cloudinary.js` üzerinden, tarayıcıdan doğrudan. **API secret bu repoya asla girmez** — repo public ve unsigned upload secret istemiyor. Görsel gösterirken `optimizeUrl(url, genislik)` kullan, ham `imageUrl`'i doğrudan basma.
 
 ## Firebase kalıpları (mevcut kodda doğru kurulmuş, bozma)
 

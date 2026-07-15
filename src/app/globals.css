@@ -683,6 +683,70 @@ textarea.form-input {
   margin-top: -0.35rem;
 }
 
+/* Admin — fotoğraf yükleme */
+.foto-sec {
+  display: block;
+  text-align: center;
+  padding: 1.5rem;
+  border: 2px dashed var(--color-muted);
+  border-radius: 0.5rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.foto-sec:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.foto-sec.yukleniyor {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.foto-onizleme {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-muted);
+  border-radius: 0.5rem;
+  background-color: #fafaf9;
+}
+
+.foto-onizleme img {
+  width: 64px;
+  height: 64px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.foto-onizleme strong {
+  display: block;
+  color: var(--color-secondary);
+  font-size: 0.9rem;
+}
+
+.foto-onizleme button {
+  background: none;
+  border: none;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 0.2rem;
+}
+
+.foto-hata {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+}
+
 .liste-onizleme {
   width: 44px;
   height: 44px;

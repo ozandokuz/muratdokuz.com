@@ -89,18 +89,27 @@ Gün sırası ve renkler `globals.css`'teki `.hw-day:nth-child(n)` kurallarına 
 
 ---
 
-## 🖼️ Galeri ve fotoğraf yükleme (16 Tem 2026)
+## 🖼️ Cloudinary — fotoğraf yükleme (16 Tem 2026) ✅ ÇALIŞIYOR
 
-**Şu anki durum:** Admin panelinde "Fotoğraf bağlantısı" alanı var, `imageUrl` bir URL string'i olarak kaydediliyor. Galeri sayfası bu URL'yi olduğu gibi gösteriyor.
+Admin panelinde **"📷 Fotoğraf Seç"** butonu var; öğretmen dosyayı seçer, tarayıcıdan doğrudan Cloudinary'ye yüklenir, dönen adres `imageUrl` olarak Firestore'a yazılır.
 
-**Planlanan:** Cloudinary ile panelden doğrudan yükleme. Karar gerekçesi:
-- Firebase Storage **Blaze planı (kredi kartı)** istiyor → elendi.
-- Vercel Blob (Hobby) aylık **1GB trafik** veriyor ve otomatik optimizasyon yapmıyor; 3MB'lık telefon fotoğraflarıyla dolu bir galeri sayfası ~90MB eder → ayda ~11 görüntüleme → elendi.
-- **Cloudinary ücretsiz planı:** kart istemiyor, 25 kredi/ay (~5GB depolama + 10GB trafik) ve **URL üzerinden otomatik boyutlandırma + WebP** veriyor. Aynı sayfa ~4MB'a iniyor.
+**Ayarlar (`src/lib/cloudinary.js`):**
+- Cloud name: `zchruwpo`
+- Unsigned preset: `dokuzm`
+- Klasör: `galeri` (preset'te tanımlı değil, **upload çağrısında `folder` parametresiyle** gönderiliyor)
 
-**Bağlanınca yapılacak:** `unsigned upload preset` ile tarayıcıdan doğrudan yükleme. Admin formundaki URL input'u "Fotoğraf Seç" butonuna dönüşecek; **sayfa kodu ve veri modeli değişmeyecek** çünkü `imageUrl` yine string. Ozan'dan `cloud name` + `preset adı` bekleniyor.
+**⚠️ API secret bu repoda YOK ve asla olmayacak.** Repo public. Cloud name ve preset adı gizli değil — unsigned upload'da zaten tarayıcıya gidiyorlar, her görsel URL'inde görünüyorlar. Secret sunucu tarafı imzalı işlemler için; bizim sunucumuz yok.
 
-**Not:** Unsigned preset, siteyi okuyan herkesin o preset'e yükleme yapabilmesi demek. Preset ayarlarında format (`jpg/png/webp`), boyut limiti ve `galeri` klasörü kısıtı konulmalı.
+**Asıl kazanç — otomatik optimizasyon.** `optimizeUrl(url, genislik)` fonksiyonu URL'e `f_auto,q_auto,w_N` ekliyor. Ölçülen gerçek sonuç: 291KB'lık orijinal fotoğraf, galeri kartında **30KB** (600px), lightbox'ta **92KB** (1400px) olarak iniyor. Cloudinary'yi seçme sebebi buydu:
+- Firebase Storage → Blaze planı (kredi kartı) istiyor, üstelik otomatik boyutlandırma yok.
+- Vercel Blob (Hobby) → aylık **1GB trafik**, optimizasyon yok. 3MB'lık telefon fotoğraflarıyla dolu galeri ~90MB/sayfa eder → ayda ~11 görüntüleme.
+- Cloudinary ücretsiz → kart yok, ~5GB depolama + 10GB trafik, optimizasyon dahil.
+
+`optimizeUrl` Cloudinary dışı adresleri **olduğu gibi bırakır**, eski/elle girilmiş linkler bozulmaz.
+
+**Yapılacak:** Preset'te `Allowed formats` (jpg/png/webp) ve `Max file size` kısıtları **henüz konulmadı**. Unsigned preset, siteyi okuyan herkesin oraya yükleme yapabilmesi demek — bu kısıtlar konulmalı.
+
+**Not:** Unsigned upload ile yüklenen dosya API secret olmadan **silinemez**. Admin panelinden bir fotoğrafı silmek Firestore kaydını siler ama dosya Cloudinary'de kalır. Ücretsiz kota için sorun değil; temizlik gerekirse Cloudinary Media Library'den elle yapılır.
 
 ---
 
@@ -115,8 +124,7 @@ Hiçbiri siteyi bozmuyor, ama biriktikçe iş çıkarır:
 - **`storage` boşuna export ediliyor.** `src/lib/firebase.js:21` — Storage kurulmadı ama modül yine de import ediliyor, bundle'a yük.
 - **`alert()` ile bildirim.** Admin panelinde ekleme sonrası `alert()` kullanılıyor. Çalışıyor ama kaba.
 - **Eski yorum:** `src/app/sorular/[id]/page.js` içindeki yorum "Next 15 compatibility" diyor, proje Next 16.
-- **Bozuk fotoğraf linki çirkin görünüyor.** Galeri kartındaki `imageUrl` geçersizse tarayıcının kırık resim ikonu çıkıyor. Cloudinary yüklemesi bağlanınca pratikte olmayacak, ama `onError` ile bir yedek görsel gösterilebilir.
-- **`<img>` kullanılıyor, `next/image` değil.** Galeri dış URL'lerden beslendiği için `next/image` kullanmak `next.config.mjs`'de `remotePatterns` tanımı ister. Cloudinary bağlanınca tek domain olacağı için o zaman geçiş mantıklı — optimizasyonu zaten Cloudinary yapacak.
+- **`<img>` kullanılıyor, `next/image` değil.** Optimizasyonu Cloudinary yaptığı için (`f_auto,q_auto,w_N`) `next/image`'a geçmenin kazancı sınırlı; geçilirse `next.config.mjs`'e `remotePatterns` ile `res.cloudinary.com` eklenmeli.
 
 ---
 
@@ -144,6 +152,7 @@ muratdokuz.com/
 │   │       └── dashboard/page.js  # ✅ Ekleme formları + listeleme/silme
 │   ├── components/
 │   │   ├── Navbar.js           # Hamburger menü (client component)
+│   │   ├── FotoYukle.js        # Cloudinary "Fotoğraf Seç" butonu
 │   │   ├── Lightbox.js         # Galeri modal'ı
 │   │   └── HaftaTablosu.js     # Haftalık ödev tablosu (ana sayfa + /odevler ortak)
 │   └── lib/
@@ -151,7 +160,8 @@ muratdokuz.com/
 │       ├── duyurular.js        # Duyuru sorgusu + silme
 │       ├── odevler.js          # Ödev sorgusu + silme + satır ayrıştırma
 │       ├── galeri.js           # Galeri sorgusu + silme + KATEGORILER
-│       └── baglantilar.js      # Bağlantı sorgusu + silme + sekme filtresi
+│       ├── baglantilar.js      # Bağlantı sorgusu + silme + sekme filtresi
+│       └── cloudinary.js       # Yükleme + optimizeUrl (API secret YOK)
 ├── AGENTS.md                   # Kalıcı kurallar (Claude + AGY ortak)
 ├── CLAUDE.md                   # AGENTS.md + AI_NOTES.md'yi import eder
 ├── AI_NOTES.md                 # Bu dosya — güncel durum
